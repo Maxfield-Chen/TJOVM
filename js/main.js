@@ -18,14 +18,15 @@ $(function() {
 
       Particle.prototype.attract = function(players) {
         var anyMoving = false;
+        var that = this;
         players.forEach(function(player) {
           if(player.mouseDown){
             anyMoving = true;
-            var dx = player.x - this.x;
-            var dy = player.y - this.y;
+            var dx = player.x - that.x;
+            var dy = player.y - that.y;
             var distance = Math.sqrt(dx * dx + dy * dy);
-            this.x += (dx / distance)*1 * m.random();
-            this.y += (dy / distance) *1.5* m.random();
+            that.x += (dx / distance) * m.random();
+            that.y += (dy / distance) *1.5* m.random();
           }
         })
         if(!anyMoving) { 
@@ -49,7 +50,6 @@ $(function() {
       var width = display.width = window.innerWidth;
       var height = display.height = window.innerHeight;
       var mouse = { x: width * 0.5, y: height * 0.5 };
-      var mouseDown = false;
 
       for (var i = 0; i < 200; i++) {
         particles[i] = new Particle(Math.random() * width, Math.random() * height);
@@ -71,11 +71,9 @@ $(function() {
       }
 
       function onMouseup(e) { 
-        mouseDown = false; 
         primus.write({endClick: true, id: clientID});
       }
       function onMousedown(e) { 
-        mouseDown = true; 
         primus.write({startClick: true, id: clientID});
       }
 

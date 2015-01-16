@@ -22,6 +22,8 @@ app.get('/', function(request, response) {
 primus.on("connection", function(spark) {
   console.log("New client");
   var newID = Date.now();
+  //If the server gets data of any sort, just pass it on to the clients
+  //..which it's not...
   spark.on("data", function(data) {
     console.log(data);
     primus.write(data);
@@ -36,4 +38,3 @@ primus.on("connection", function(spark) {
   })
 })
 
-//If the server gets data of any sort, just pass it on to the clients
