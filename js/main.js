@@ -61,14 +61,17 @@ $(function() {
 
       //On mousemove just send data to server, they send to everyone
       //so we treat ourselves like any other player.
+      var recentCoords;
       function onMousemove(e) {
-        primus.write({
+        recentCoords = {
           newMove: true,
           x: e.clientX,
           y: e.clientY,
           id: clientID
-        });
+        };
       }
+
+      setInterval(function(){primus.write(recentCoords)}, 200);
 
       function onMouseup(e) { 
         primus.write({endClick: true, id: clientID});

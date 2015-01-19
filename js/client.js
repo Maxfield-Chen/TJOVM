@@ -9,14 +9,13 @@ function Player(x, y, id) {
 
 //If i'm being honest I should probably use a tree
 //to get logn searchtime but whatever.
+//actually then I'd lose the constant edit time so nope
 function playerExists(players, playerId){
   for(i = 0; i < players.length; i++){
     if(playerId == players[i].id) {
-      console.log("Player Exists: " + playerId + "," + players[i].id)
       return i;
     }
   }
-  console.log("Player Does not Exist: " + playerId + "," + players[i].id)
   return -1;
 }
 
@@ -25,7 +24,6 @@ var players = new Array();
 var clientID;
 
 primus.on("open", function(){
-  console.log("Querying Server")
 })
 
 primus.on("data", function(data){
@@ -35,7 +33,6 @@ primus.on("data", function(data){
     console.log("Connected to server: " + clientID)
     var newPlayer = new Player(-1, -1, data.id);
     players.push(newPlayer);
-    console.log(players);
   } else if(data.newMove) {
     //console.log("New Move (" + data.x + "," + data.y + "," + data.id + ")");
     var playerIndex = playerExists(players, data.id);
@@ -47,12 +44,9 @@ primus.on("data", function(data){
       players.push(newPlayer);
     }
   } else if(data.startClick) {
-    console.log("New Click: " + data.id);
     var playerIndex = playerExists(players, data.id);
-    console.log(playerIndex);
     if(playerIndex != -1) { 
       players[playerIndex].mouseDown = true;
-      console.log(players[playerIndex].x + ":" +  players[playerIndex].y)
     }
     else {
       var newPlayer = new Player(data.x, data.y, data.id);
@@ -60,9 +54,7 @@ primus.on("data", function(data){
       players.push(newPlayer);
     }
   } else if(data.endClick) {
-    console.log("New End Click: " + data.id);
     var playerIndex = playerExists(players, data.id);
-    console.log(playerIndex);
     if(playerIndex != -1) { players[playerIndex].mouseDown = false; }
     else {
       var newPlayer = new Player(data.x, data.y, data.id);
