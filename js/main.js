@@ -1,5 +1,6 @@
 $(function() {
       var DAMPING = 0.97;
+      var anyMoving;
       var m = new MersenneTwister();
 
       function Particle(x, y) {
@@ -17,7 +18,7 @@ $(function() {
       };
 
       Particle.prototype.attract = function(players) {
-        var anyMoving = false;
+        anyMoving = false;
         var that = this;
         players.forEach(function(player) {
           if(player.mouseDown){
@@ -25,14 +26,40 @@ $(function() {
             var dx = player.x - that.x;
             var dy = player.y - that.y;
             var distance = Math.sqrt(dx * dx + dy * dy);
-            that.x += (dx / distance) * m.random();
-            that.y += (dy / distance) *1.5* m.random();
+            that.x += (dx / distance) * 2 * m.random();
+            that.y += (dy / distance) *3.5 * m.random();
           }
         })
         if(!anyMoving) { 
-          this.x += .5 * m.random() * (m.random() >= .5 ? -1 : 1);
-          this.y += .5 * m.random() * (m.random() <= .5 ? -1 : 1);
+          this.x += .5* m.random() * (m.random() >= .5 ? -1 : 1);
+          this.y += .5*  m.random() * (m.random() <= .5 ? -1 : 1);
         }
+      };
+      
+      //This segment just toggled the idle animation on and off
+      var onIdle = true;
+      var idleTime = 500;
+      setInterval(function(){
+        onIdle = !onIdle;
+        idleTime = (idleTime == 20000 ? 500 : 20000);
+      }, idleTime);
+
+      Particle.prototype.attractIdle = function(attractX, attractY, disperseDistance) {
+        if(!anyMoving && onIdle) {
+          var dx = attractX - this.x;
+          var dy = attractY - this.y;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+          this.x += (dx * distance * .00002) * 2.5 * m.random();
+          this.y += (dy * distance * .00002) * 3.25 * m.random();
+          //counting
+          if(Math.abs(distance) < disperseDistance) return 1;
+          else return 0;
+        }
+      };
+
+      Particle.prototype.disperse = function(){
+        this.x += this.x * .05 * m.random() * (m.random() >= .5 ? -1 : 1);
+        this.y += this.y * .05 * m.random() * (m.random() >= .5 ? -1 : 1);
       };
 
       Particle.prototype.draw = function() {
@@ -50,8 +77,9 @@ $(function() {
       var width = display.width = window.innerWidth;
       var height = display.height = window.innerHeight;
       var mouse = { x: width * 0.5, y: height * 0.5 };
+      var idleActive = true;
 
-      for (var i = 0; i < 200; i++) {
+      for (var i = 0; i < 500; i++) {
         particles[i] = new Particle(Math.random() * width, Math.random() * height);
       }
 
@@ -71,7 +99,7 @@ $(function() {
         };
       }
 
-      setInterval(function(){primus.write(recentCoords)}, 200);
+      setInterval(function(){primus.write(recentCoords);} , 200);
 
       function onMouseup(e) { 
         primus.write({endClick: true, id: clientID});
@@ -85,10 +113,20 @@ $(function() {
       function frame() {
         requestAnimationFrame(frame);
         ctx.clearRect(0, 0, width, height);
+        var disperseQuota = particles.length * .82;
+        var disperseDistance = width * .05;
+        var withinDisperse = 0;
         for (var i = 0; i < particles.length; i++) {
           particles[i].attract(players);
+          withinDisperse += particles[i].attractIdle(width/2, height/2, disperseDistance);
           particles[i].integrate();
           particles[i].draw();
         }
+        if(withinDisperse >= disperseQuota) {
+          for (var j = 0; j < particles.length; j++) {
+             particles[j].disperse();
+          }
+        }
+        //console.log("DisperseQuota: " + disperseQuota + "| curThreshold: " +  withinDisperse);
       }
 });
