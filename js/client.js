@@ -7,9 +7,6 @@ function Player(x, y, id) {
   this.id = id;
 }
 
-//If i'm being honest I should probably use a tree
-//to get logn searchtime but whatever.
-//actually then I'd lose the constant edit time so nope
 function playerExists(players, playerId){
   for(i = 0; i < players.length; i++){
     if(playerId == players[i].id) {
@@ -27,14 +24,12 @@ primus.on("open", function(){
 })
 
 primus.on("data", function(data){
-  //console.log(data)
   if(data.init) {
     clientID = data.id;
     console.log("Connected to server: " + clientID)
     var newPlayer = new Player(-1, -1, data.id);
     players.push(newPlayer);
   } else if(data.newMove) {
-    //console.log("New Move (" + data.x + "," + data.y + "," + data.id + ")");
     var playerIndex = playerExists(players, data.id);
     if(playerIndex != -1) {
       players[playerIndex].x = data.x;
